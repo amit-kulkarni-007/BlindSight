@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.landmark'
+    namespace 'com.example.blindsight'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.landmark"
+        applicationId "com.example.blindsight"
         minSdk 24
         targetSdk 34
         versionCode 1

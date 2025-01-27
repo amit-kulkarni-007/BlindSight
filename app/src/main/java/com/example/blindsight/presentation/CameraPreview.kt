@@ -1,4 +1,4 @@
-package com.example.landmark.presentation
+package com.example.blindsight.presentation
 
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView

@@ -1,4 +1,4 @@
-package com.example.landmark.domain
+package com.example.blindsight.domain
 
 data class Classification(
     val name: String,

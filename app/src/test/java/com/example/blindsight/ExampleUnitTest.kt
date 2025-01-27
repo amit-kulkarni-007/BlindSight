@@ -1,4 +1,4 @@
-package com.example.landmark
+package com.example.blindsight
 
 import org.junit.Test
 

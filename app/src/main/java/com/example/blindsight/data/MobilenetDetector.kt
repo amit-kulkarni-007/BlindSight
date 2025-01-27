@@ -1,4 +1,4 @@
-package com.example.landmark.data
+package com.example.blindsight.data
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -45,9 +45,6 @@ class MobilenetDetector(
             setupDetector()
         }
 
-//        val imageProcessor = ImageProcessor.Builder().build()
-//        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmap))
-
         val imageProcessor =
             ImageProcessor.Builder()
                 .add(Rot90Op(-rotation / 90))
@@ -55,23 +52,11 @@ class MobilenetDetector(
         val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmap))
 
 
-//        val imageProcessingOptions = ImageProcessingOptions.builder()
-//            .setOrientation(getOrientationFromRotation(rotation))
-//            .build()
-
         val results = objectDetector?.detect(tensorImage)
         for(result in results!!) {
             Log.i("detect", result.toString())
         }
         return results
-//        return results?.flatMap { classications ->
-//            classications.categories.map { category ->
-//                Classification(
-//                    name = category.displayName,
-//                    score = category.score
-//                )
-//            }
-//        }?.distinctBy { it.name } ?: emptyList()
     }
 
     private fun getOrientationFromRotation(rotation: Int): ImageProcessingOptions.Orientation {

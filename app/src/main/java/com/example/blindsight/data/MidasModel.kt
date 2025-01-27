@@ -1,4 +1,4 @@
-package com.example.landmark.data
+package com.example.blindsight.data
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -41,8 +41,7 @@ class MidasModel(
     init {
         // Initialize TFLite Interpreter
         val interpreterOptions = Interpreter.Options().apply {
-            // Add the GPU Delegate if supported.
-            // See -> https://www.tensorflow.org/lite/performance/gpu#android
+            // Adding the GPU Delegate if supported
             if ( CompatibilityList().isDelegateSupportedOnThisDevice ) {
                 addDelegate( GpuDelegate( CompatibilityList().bestOptionsForThisDevice ))
             }

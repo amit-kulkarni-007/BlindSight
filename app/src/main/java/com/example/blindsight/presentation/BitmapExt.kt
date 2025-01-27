@@ -1,4 +1,4 @@
-package com.example.landmark.presentation
+package com.example.blindsight.presentation
 
 import android.graphics.Bitmap
 

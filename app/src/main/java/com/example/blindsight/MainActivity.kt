@@ -1,4 +1,4 @@
-package com.example.landmark
+package com.example.blindsight
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -28,13 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.landmark.data.MidasModel
-import com.example.landmark.data.MobilenetDetector
-import com.example.landmark.data.TfLiteLandmarkClassifier
-import com.example.landmark.domain.Classification
-import com.example.landmark.presentation.CameraPreview
-import com.example.landmark.presentation.LandmarkImageAnalyzer
-import com.example.landmark.ui.theme.LandmarkTheme
+import com.example.blindsight.data.MidasModel
+import com.example.blindsight.data.MobilenetDetector
+import com.example.blindsight.presentation.CameraPreview
+import com.example.blindsight.presentation.ImageAnalyzer
+import com.example.blindsight.ui.theme.LandmarkTheme
 import org.tensorflow.lite.task.vision.detector.Detection
 import java.util.*
 
@@ -54,9 +52,6 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             LandmarkTheme {
-                var classifications by remember {
-                    mutableStateOf(emptyList<Classification>())
-                }
                 var bitmapState by remember {
                     mutableStateOf<Bitmap?>(null)
                 }
@@ -64,19 +59,13 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(emptyList<Detection>())
                 }
                 val analyzer = remember {
-                    LandmarkImageAnalyzer(
-                        classifier = TfLiteLandmarkClassifier(
-                            context = applicationContext
-                        ),
+                    ImageAnalyzer(
                         detector = MobilenetDetector(
                             context = applicationContext
                         ),
                         midasDetector = MidasModel(
                             context = applicationContext
                         ),
-                        onResults = {
-                            classifications = it
-                        },
                         onBitmapGenerated = { newBitmap ->
                             bitmapState = newBitmap // Update the Bitmap
                         },
@@ -91,15 +80,6 @@ class MainActivity : ComponentActivity() {
                                     null
                                 )
                             }
-//                            results.forEach { detection ->
-//                                val label = detection.categories.firstOrNull()?.label ?: "Unknown"
-//                                textToSpeech?.speak(
-//                                    label,
-//                                    TextToSpeech.QUEUE_ADD,
-//                                    null,
-//                                    null
-//                                )
-//                            }
                         }
                     )
                 }
@@ -197,21 +177,9 @@ class MainActivity : ComponentActivity() {
                             .fillMaxWidth()
                             .align(Alignment.TopCenter)
                     ) {
-                        detections.forEach {
-                            Text(
-                                text = it.categories[0].toString(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Blue)
-                                    .padding(8.dp),
-                                textAlign = TextAlign.Center,
-                                fontSize = 20.sp,
-                                color = Color.Red
-                            )
-                        }
-//                        classifications.forEach {
+//                        detections.forEach {
 //                            Text(
-//                                text = it.name,
+//                                text = it.categories[0].toString(),
 //                                modifier = Modifier
 //                                    .fillMaxWidth()
 //                                    .background(Color.Blue)
@@ -221,8 +189,6 @@ class MainActivity : ComponentActivity() {
 //                                color = Color.Red
 //                            )
 //                        }
-
-
                     }
                 }
             }
