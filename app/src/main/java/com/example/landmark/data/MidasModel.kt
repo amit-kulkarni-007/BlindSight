@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
+import androidx.core.graphics.get
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -80,7 +81,8 @@ class MidasModel(
 
         // Create a Bitmap from the depth map which will be displayed on the screen.
         var res: Bitmap = byteBufferToBitmap( outputTensor.floatArray , inputImageDim )
-        Log.i("midas", res.toString())
+        val pix = res.get(0, 0)
+        Log.i("midas", res[0, 0].toString())
         return res
     }
 

@@ -3,7 +3,6 @@ package com.example.landmark.presentation
 import android.graphics.Bitmap
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.core.graphics.scale
 import com.example.landmark.data.MidasModel
 import com.example.landmark.data.MobilenetDetector
 import com.example.landmark.domain.Classification
@@ -22,7 +21,7 @@ class LandmarkImageAnalyzer(
     private var frameSkipCounter = 0
 //    480 * 640
     override fun analyze(image: ImageProxy) {
-        if(frameSkipCounter % 30 == 0) {
+        if(frameSkipCounter % 1 == 0) {
             val rotationDegrees = image.imageInfo.rotationDegrees
 //            val bitmap = image
 //                .toBitmap()
