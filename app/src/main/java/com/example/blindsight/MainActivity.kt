@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.camera.view.CameraController
@@ -38,6 +39,7 @@ import java.util.*
 
 class MainActivity : ComponentActivity() {
     private var textToSpeech: TextToSpeech? = null
+    private var stepsFound = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         textToSpeech = TextToSpeech(this) { status ->
@@ -67,20 +69,21 @@ class MainActivity : ComponentActivity() {
                             context = applicationContext
                         ),
                         onBitmapGenerated = { newBitmap ->
-                            bitmapState = newBitmap // Update the Bitmap
+                            bitmapState = newBitmap
                         },
                         onDetected = { results ->
-                            detections = results
-                            if(detections.isNotEmpty()){
-                                val label = detections[0].categories.firstOrNull()?.label ?: "Unknown"
-                                textToSpeech?.speak(
-                                    label,
-                                    TextToSpeech.QUEUE_ADD,
-                                    null,
-                                    null
-                                )
-                            }
-                        }
+//                            detections = results
+//                            if(detections.isNotEmpty()){
+//                                val label = detections[0].categories.firstOrNull()?.label ?: "Unknown"
+//                                textToSpeech?.speak(
+//                                    label + " " + stepsFound,
+//                                    TextToSpeech.QUEUE_ADD,
+//                                    null,
+//                                    null
+//                                )
+//                            }
+                        },
+                        textToSpeech = textToSpeech
                     )
                 }
                 val controller = remember {
@@ -102,13 +105,10 @@ class MainActivity : ComponentActivity() {
                         val screenWidth = LocalContext.current.resources.displayMetrics.widthPixels
                         val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
 
-                        // Create a Matrix to apply transformations (rotation and scaling)
                         val matrix = Matrix()
 
-                        // Apply rotation (for example, rotating 90 degrees)
-                        matrix.postRotate(90f)  // Rotate by 90 degrees (you can change this to any degree)
+//                        matrix.postRotate(90f)
 
-                        // Apply the matrix transformation to the bitmap
                         val rotatedBitmap = Bitmap.createBitmap(
                             bitmap,
                             0,
@@ -119,16 +119,15 @@ class MainActivity : ComponentActivity() {
                             true
                         )
 
-                        // Scale the rotated bitmap to fit the screen
-                        val scaledBitmap = Bitmap.createScaledBitmap(
-                            rotatedBitmap,
-                            screenWidth,
-                            screenHeight,
-                            true
-                        )
+//                        val scaledBitmap = Bitmap.createScaledBitmap(
+//                            rotatedBitmap,
+//                            screenWidth,
+//                            screenHeight,
+//                            true
+//                        )
 
                         Image(
-                            bitmap = scaledBitmap.asImageBitmap(),
+                            bitmap = rotatedBitmap.asImageBitmap(),
                             contentDescription = "Captured Frame",
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -138,57 +137,30 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-                        // Get the dimensions of the canvas (screen)
                         val canvasWidth = size.width
                         val canvasHeight = size.height
-
-                        // Assuming input Bitmap size (used for detection)
                         val inputWidth = 300f
                         val inputHeight = 300f
-
-                        // Calculate scaling factors
                         val scaleX = canvasWidth / inputWidth
                         val scaleY = canvasHeight / inputHeight
-
-                        // Draw each detection with scaled bounding box
                         detections.forEach { detection ->
                             val boundingBox = detection.boundingBox
                             val left = boundingBox.left * scaleX
                             val top = boundingBox.top * scaleY
                             val right = boundingBox.right * scaleX
                             val bottom = boundingBox.bottom * scaleY
-
                             drawRect(
-                                color = Color.Red, // Border color
+                                color = Color.Red,
                                 topLeft = androidx.compose.ui.geometry.Offset(left, top),
                                 size = androidx.compose.ui.geometry.Size(
                                     width = right - left,
                                     height = bottom - top
                                 ),
                                 style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                    width = 4f // Border thickness
+                                    width = 4f
                                 )
                             )
                         }
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.TopCenter)
-                    ) {
-//                        detections.forEach {
-//                            Text(
-//                                text = it.categories[0].toString(),
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .background(Color.Blue)
-//                                    .padding(8.dp),
-//                                textAlign = TextAlign.Center,
-//                                fontSize = 20.sp,
-//                                color = Color.Red
-//                            )
-//                        }
                     }
                 }
             }
@@ -196,7 +168,6 @@ class MainActivity : ComponentActivity() {
     }
     override fun onDestroy() {
         super.onDestroy()
-        // Release TTS resources
         textToSpeech?.shutdown()
     }
     private fun hasCameraPermission() = ContextCompat.checkSelfPermission(

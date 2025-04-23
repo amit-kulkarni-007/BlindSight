@@ -14,7 +14,7 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector
 
 class MobilenetDetector(
     private val context: Context,
-    private val maxResults: Int = 5,
+    private val maxResults: Int = 1,
     private val threshold: Float = 0.5f
 ) {
     private var objectDetector: ObjectDetector? = null

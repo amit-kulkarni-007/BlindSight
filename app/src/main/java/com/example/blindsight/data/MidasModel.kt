@@ -3,6 +3,7 @@ package com.example.blindsight.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Matrix
 import android.util.Log
 import androidx.core.graphics.get
 import org.tensorflow.lite.DataType
@@ -39,14 +40,11 @@ class MidasModel(
         .build()
 
     init {
-        // Initialize TFLite Interpreter
         val interpreterOptions = Interpreter.Options().apply {
-            // Adding the GPU Delegate if supported
             if ( CompatibilityList().isDelegateSupportedOnThisDevice ) {
                 addDelegate( GpuDelegate( CompatibilityList().bestOptionsForThisDevice ))
             }
             else {
-                // Number of threads for computation
                 setNumThreads( NUM_THREADS )
             }
         }
@@ -58,60 +56,56 @@ class MidasModel(
     }
 
     private fun run( inputImage : Bitmap ): Bitmap {
-        // Note: The model takes in a RGB image ( of shape ( 256 , 256 , 3 ) ) and
-        // outputs a depth map of shape ( 256 , 256 , 1 )
-        // Create a tensor of shape ( 1 , inputImageDim , inputImageDim , 3 ) from the given Bitmap.
-        // Then perform operations on the tensor as described by `inputTensorProcessor`.
-        var inputTensor = TensorImage.fromBitmap( inputImage )
+        val mat = Matrix()
+        mat.postRotate(90f)
+        val rotatedInputImage = Bitmap.createBitmap(inputImage, 0, 0, inputImage.width, inputImage.height, mat, true)
+
+        var inputTensor = TensorImage.fromBitmap( rotatedInputImage )
 
         val t1 = System.currentTimeMillis()
         inputTensor = inputTensorProcessor.process( inputTensor )
 
-        // Output tensor of shape ( 256 , 256 , 1 ) and data type float32
         var outputTensor = TensorBufferFloat.createFixedSize(
             intArrayOf( inputImageDim , inputImageDim , 1 ) , DataType.FLOAT32 )
 
-        // Perform inference on the MiDAS model
         interpreter.run( inputTensor.buffer, outputTensor.buffer )
 
-        // Perform operations on the output tensor as described by `outputTensorProcessor`.
         outputTensor = outputTensorProcessor.process( outputTensor )
-//        Logger.logInfo( "MiDaS inference speed: ${System.currentTimeMillis() - t1}")
 
-        // Create a Bitmap from the depth map which will be displayed on the screen.
-        var res: Bitmap = byteBufferToBitmap( outputTensor.floatArray , inputImageDim )
-        val pix = res.get(0, 0)
-        Log.i("midas", res[0, 0].toString())
-        return res
+        val bitmap = byteBufferToBitmap(outputTensor.floatArray, inputImageDim)
+
+        return bitmap
     }
 
-    private fun byteBufferToBitmap( imageArray : FloatArray , imageDim : Int ) : Bitmap {
-        val pixels = imageArray.map { it.toInt() }.toIntArray()
-        val bitmap = Bitmap.createBitmap(imageDim, imageDim, Bitmap.Config.RGB_565 );
-        for ( i in 0 until imageDim ) {
-            for ( j in 0 until imageDim ) {
-                val p = pixels[ i * imageDim + j ]
-                bitmap.setPixel( j , i , Color.rgb( p , p , p ))
+    private fun byteBufferToBitmap(imageArray: FloatArray, imageDim: Int): Bitmap {
+        val max = imageArray.maxOrNull()!!
+        val min = imageArray.minOrNull()!!
+
+        val bitmap = Bitmap.createBitmap(imageDim, imageDim, Bitmap.Config.ARGB_8888)
+        for (i in 0 until imageDim) {
+            for (j in 0 until imageDim) {
+                val index = i * imageDim + j
+                val depthValue = ((imageArray[index] - min) / (max - min) * 255).toInt() // Normalize
+                val grayscaleColor = Color.rgb(depthValue, depthValue, depthValue)
+                bitmap.setPixel(j, i, grayscaleColor)
             }
         }
         return bitmap
     }
 
+
     class MinMaxScalingOp : TensorOperator {
         override fun apply( input : TensorBuffer?): TensorBuffer {
             val values = input!!.floatArray
-            // Compute min and max of the output
             val max = values.maxOrNull()!!
             val min = values.minOrNull()!!
             for ( i in values.indices ) {
-                // Normalize the values and scale them by a factor of 255
                 var p = ((( values[ i ] - min ) / ( max - min )) * 255).toInt()
                 if ( p < 0 ) {
                     p += 255
                 }
                 values[ i ] = p.toFloat()
             }
-            // Convert the normalized values to the TensorBuffer and load the values in it.
             val output = TensorBufferFloat.createFixedSize( input.shape , DataType.FLOAT32 )
             output.loadArray( values )
             return output
