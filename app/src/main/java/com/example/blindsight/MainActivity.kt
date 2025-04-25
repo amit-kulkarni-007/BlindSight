@@ -1,6 +1,7 @@
 package com.example.blindsight
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -33,6 +34,7 @@ import com.example.blindsight.data.MidasModel
 import com.example.blindsight.data.MobilenetDetector
 import com.example.blindsight.presentation.CameraPreview
 import com.example.blindsight.presentation.ImageAnalyzer
+import com.example.blindsight.receiver.BatteryLevelReceiver
 import com.example.blindsight.ui.theme.LandmarkTheme
 import org.tensorflow.lite.task.vision.detector.Detection
 import java.util.*
@@ -47,11 +49,12 @@ class MainActivity : ComponentActivity() {
                 textToSpeech?.language = Locale.US
             }
         }
-        if(!hasCameraPermission()) {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.CAMERA), 0
-            )
+        val intentFilter = android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(BatteryLevelReceiver(), intentFilter)
+        if (!allPermissionsGranted()) {
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, 0)
         }
+
         setContent {
             LandmarkTheme {
                 var bitmapState by remember {
@@ -170,8 +173,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         textToSpeech?.shutdown()
     }
-    private fun hasCameraPermission() = ContextCompat.checkSelfPermission(
-        this, Manifest.permission.CAMERA
-    ) == PackageManager.PERMISSION_GRANTED
+
+    private val REQUIRED_PERMISSIONS = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.SEND_SMS,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+    }
 
 }

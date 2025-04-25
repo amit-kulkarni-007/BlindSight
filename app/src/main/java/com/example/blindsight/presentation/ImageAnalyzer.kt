@@ -48,10 +48,10 @@ class ImageAnalyzer(
                 }
             }
 
-            Log.d("ImageProcessing", "Average Depth Matrix:")
-            for (row in matrix) {
-                Log.d("ImageProcessing", row.joinToString("  ") { "%.2f".format(it) })
-            }
+//            Log.d("ImageProcessing", "Average Depth Matrix:")
+//            for (row in matrix) {
+//                Log.d("ImageProcessing", row.joinToString("  ") { "%.2f".format(it) })
+//            }
 
             if (detections.isNotEmpty()) {
                 val scaleFactorX = 256f / 300f
@@ -62,13 +62,12 @@ class ImageAnalyzer(
                 val xMax = (detections[0].boundingBox.right * scaleFactorX).toInt().coerceIn(0, 255)
                 val yMax = (detections[0].boundingBox.bottom * scaleFactorY).toInt().coerceIn(0, 255)
                 val label = detections[0].categories.firstOrNull()?.label ?: "Unknown"
-                // Compute the average depth for the detected bounding box
                 val avgDepth = getAverageDepthForBoundingBox(xMin, yMin, xMax, yMax, squareSize, matrix)
 //                Log.d("ObjectDepth", "Average Depth of Object: $avgDepth")
                 val depthCategory = getDepthCategory(avgDepth)
                 val direction = getObjectDirection(xMin, xMax)
 //                Log.d("ObjectDirection", "Object Position: $direction")
-                Log.d("ObjectInfo", "Object at $direction with Depth Level: $depthCategory")
+//                Log.d("ObjectInfo", "Object at $direction with Depth Level: $depthCategory")
                 val resultText = "$label $direction $depthCategory"
                 textToSpeech?.speak(resultText, TextToSpeech.QUEUE_FLUSH, null, null)
             }
