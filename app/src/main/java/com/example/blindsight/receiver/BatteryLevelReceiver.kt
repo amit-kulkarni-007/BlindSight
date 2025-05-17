@@ -11,7 +11,7 @@ class BatteryLevelReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         Log.d("BatteryLevelReceiver", "Battery level: $level%")
-        if (level in 1..50) {
+        if (level in 1..5) {
             Log.d("BatteryLevelReceiver", "Battery low: $level%")
             LocationHelper.sendLocationToContacts(context)
         }

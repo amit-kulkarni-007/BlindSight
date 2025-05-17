@@ -6,9 +6,9 @@ import android.content.pm.PackageManager
 import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.example.blindsight.managers.ContactManager
 
 object SmsHelper {
-    private val emergencyContacts = listOf("+911234567890")
 
     fun sendSmsToContacts(context: Context, message: String) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -16,10 +16,20 @@ object SmsHelper {
             return
         }
 
+        val contacts = ContactManager(context).getContacts()
+        if (contacts.isEmpty()) {
+            Log.d("SmsHelper", "No emergency contacts to send SMS to.")
+            return
+        }
+
         val smsManager = SmsManager.getDefault()
-        emergencyContacts.forEach { number ->
-            smsManager.sendTextMessage(number, null, message, null, null)
-            Log.d("SmsHelper", "Sent SMS to $number")
+        contacts.forEach { number ->
+            try {
+                smsManager.sendTextMessage(number, null, message, null, null)
+                Log.d("SmsHelper", "Sent SMS to $number")
+            } catch (e: Exception) {
+                Log.e("SmsHelper", "Failed to send SMS to $number: ${e.message}")
+            }
         }
     }
 }
